@@ -16,6 +16,10 @@ use App\Models\InternRepository;
 use App\Models\UserRepository;
 use App\Services\ExportService;
 use App\Services\InternService;
+use App\Models\DirectionRepository;
+use App\Models\SectionRepository;
+use App\Controllers\ReferenceController;
+use App\Controllers\AuditLogController;
 
 // --- 1. Загружаем .env ---
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
@@ -52,8 +56,7 @@ try {
     $makeInternController = function () use ($db): InternController {
         return new InternController(
             new InternRepository($db),
-            new AuditLogRepository($db),
-            new InternService($db, new InternRepository($db), new AuditLogRepository($db))
+            new InternService($db, new InternRepository($db))
         );
     };
 
@@ -85,12 +88,13 @@ try {
                 $makeInternController()->update((int) $m[1], (int) $payload['sub']);
             })(),
 
-        $method === 'GET' && preg_match('#^/interns/(\d+)/history$#', $path, $m) === 1
-            => (function () use ($makeInternController, $m) {
-                $auth = new AuthMiddleware();
-                $auth->authenticate(); // operator и auditor оба могут читать историю
-                $makeInternController()->history((int) $m[1]);
-            })(),
+        // Audit logs
+        $method === 'GET' && $path === '/audit-logs' => (function () use ($db) {
+            $auth = new AuthMiddleware();
+            $auth->authenticate(); // operator and auditor both can read
+            $controller = new AuditLogController(new AuditLogRepository($db));
+            $controller->list();
+        })(),
 
         // Export to excel  
         $method === 'GET' && $path === '/export/excel' => (function () use ($db) {
@@ -98,6 +102,22 @@ try {
             $auth->authenticate(); // экспорт — это чтение, доступно обеим ролям
             $controller = new ExportController(new InternRepository($db), new ExportService());
             $controller->exportInterns();
+        })(),
+        
+        //getters for directions and sections for dropdowns to frontend
+
+        $method === 'GET' && $path === '/directions' => (function () use ($db) {
+            $auth = new AuthMiddleware();
+            $auth->authenticate(); // operator и auditor оба могут читать
+            $controller = new ReferenceController(new DirectionRepository($db), new SectionRepository($db));
+            $controller->listDirections();
+        })(),
+
+        $method === 'GET' && $path === '/sections' => (function () use ($db) {
+            $auth = new AuthMiddleware();
+            $auth->authenticate();
+            $controller = new ReferenceController(new DirectionRepository($db), new SectionRepository($db));
+            $controller->listSections();
         })(),
 
         default => Response::error('Route not found', 404, 'not_found'),

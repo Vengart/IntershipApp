@@ -26,17 +26,26 @@ class AuditLogRepository
         ]);
     }
 
-    public function findByIntern(int $internId): array
+    /**
+     * @param int|null $internId если передан — вернёт историю только этого стажёра,
+     *                            иначе — общую ленту изменений по всем.
+     */
+    public function findAll(?int $internId = null): array
     {
-        $stmt = $this->db->prepare(
-            'SELECT al.id, al.action, al.old_values, al.new_values, al.created_at,
-                    u.username AS changed_by
-             FROM audit_logs al
-             JOIN users u ON u.id = al.user_id
-             WHERE al.intern_id = :intern_id
-             ORDER BY al.created_at DESC'
-        );
-        $stmt->execute(['intern_id' => $internId]);
+        $sql = 'SELECT al.id, al.intern_id, i.full_name AS intern_name,
+                       al.action, al.old_values, al.new_values, al.created_at,
+                       u.username AS changed_by
+                FROM audit_logs al
+                JOIN users u ON u.id = al.user_id
+                JOIN interns i ON i.id = al.intern_id';
+
+        if ($internId !== null) {
+            $sql .= ' WHERE al.intern_id = :intern_id';
+        }
+        $sql .= ' ORDER BY al.created_at DESC';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($internId !== null ? ['intern_id' => $internId] : []);
 
         return $stmt->fetchAll();
     }
