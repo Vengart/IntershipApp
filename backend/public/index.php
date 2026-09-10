@@ -8,11 +8,13 @@ use App\Auth\AuthMiddleware;
 use App\Auth\JwtHandler;
 use App\Config\Database;
 use App\Controllers\AuthController;
+use App\Controllers\ExportController;
 use App\Controllers\InternController;
 use App\Http\Response;
 use App\Models\AuditLogRepository;
 use App\Models\InternRepository;
 use App\Models\UserRepository;
+use App\Services\ExportService;
 use App\Services\InternService;
 
 // --- 1. Загружаем .env ---
@@ -89,6 +91,14 @@ try {
                 $auth->authenticate(); // operator и auditor оба могут читать историю
                 $makeInternController()->history((int) $m[1]);
             })(),
+
+        // Export to excel  
+        $method === 'GET' && $path === '/export/excel' => (function () use ($db) {
+            $auth = new AuthMiddleware();
+            $auth->authenticate(); // экспорт — это чтение, доступно обеим ролям
+            $controller = new ExportController(new InternRepository($db), new ExportService());
+            $controller->exportInterns();
+        })(),
 
         default => Response::error('Route not found', 404, 'not_found'),
     };

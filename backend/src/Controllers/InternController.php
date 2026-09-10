@@ -31,6 +31,11 @@ class InternController
             'date_to' => $_GET['date_to'] ?? null,
         ]);
 
+        // Отдельно от array_filter выше: '0'/'false' — валидные значения
+        if (isset($_GET['is_active'])) {
+            $filters['is_active'] = $_GET['is_active'];
+        }
+
         Response::json($this->interns->list($filters));
     }
 

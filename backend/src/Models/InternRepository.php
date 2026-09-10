@@ -17,6 +17,7 @@ class InternRepository
         'direction_id', 'section_id',
         'internship_status', 'start_date', 'end_date',
         'mentor', 'internship_type', 'recommendation_source', 'hiring_potential',
+        'is_active',
     ];
 
     public function __construct(private PDO $db)
@@ -40,35 +41,44 @@ class InternRepository
         $params = [];
 
         if (!empty($filters['direction_id'])) {
-            $where[] = 'direction_id = :direction_id';
+            $where[] = 'interns.direction_id = :direction_id';
             $params['direction_id'] = $filters['direction_id'];
         }
         if (!empty($filters['section_id'])) {
-            $where[] = 'section_id = :section_id';
+            $where[] = 'interns.section_id = :section_id';
             $params['section_id'] = $filters['section_id'];
         }
         if (!empty($filters['university'])) {
-            $where[] = 'university ILIKE :university';
+            $where[] = 'interns.university ILIKE :university';
             $params['university'] = '%' . $filters['university'] . '%';
         }
         if (!empty($filters['specialty'])) {
-            $where[] = 'specialty ILIKE :specialty';
+            $where[] = 'interns.specialty ILIKE :specialty';
             $params['specialty'] = '%' . $filters['specialty'] . '%';
         }
         if (!empty($filters['date_from'])) {
-            $where[] = 'start_date >= :date_from';
+            $where[] = 'interns.start_date >= :date_from';
             $params['date_from'] = $filters['date_from'];
         }
         if (!empty($filters['date_to'])) {
-            $where[] = 'end_date <= :date_to';
+            $where[] = 'interns.end_date <= :date_to';
             $params['date_to'] = $filters['date_to'];
         }
+        // isset(), не empty() — иначе нельзя было бы явно запросить is_active=false
+        if (isset($filters['is_active'])) {
+            $where[] = 'interns.is_active = :is_active';
+            $params['is_active'] = filter_var($filters['is_active'], FILTER_VALIDATE_BOOLEAN);
+        }
 
-        $sql = 'SELECT * FROM interns';
+        $sql = 'SELECT interns.*, directions.name AS direction_name, sections.name AS section_name
+                FROM interns
+                JOIN directions ON directions.id = interns.direction_id
+                JOIN sections ON sections.id = interns.section_id';
+
         if ($where) {
             $sql .= ' WHERE ' . implode(' AND ', $where);
         }
-        $sql .= ' ORDER BY full_name';
+        $sql .= ' ORDER BY interns.id';
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute($params);
