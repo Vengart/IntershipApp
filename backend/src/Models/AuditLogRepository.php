@@ -30,7 +30,7 @@ class AuditLogRepository
      * @param int|null $internId если передан — вернёт историю только этого стажёра,
      *                            иначе — общую ленту изменений по всем.
      */
-    public function findAll(?int $internId = null): array
+        public function findAll(?int $internId = null): array
     {
         $sql = 'SELECT al.id, al.intern_id, i.full_name AS intern_name,
                        al.action, al.old_values, al.new_values, al.created_at,
@@ -47,6 +47,17 @@ class AuditLogRepository
         $stmt = $this->db->prepare($sql);
         $stmt->execute($internId !== null ? ['intern_id' => $internId] : []);
 
-        return $stmt->fetchAll();
+        $rows = $stmt->fetchAll();
+
+        // PDO отдаёт jsonb-колонки как сырой JSON-текст, а не как массив —
+        // без ручного decode фронт получил бы строку вместо объекта
+        // и Object.keys() посимвольно "разобрал" бы её на буквы.
+        foreach ($rows as &$row) {
+            $row['old_values'] = json_decode($row['old_values'], true);
+            $row['new_values'] = json_decode($row['new_values'], true);
+        }
+        unset($row);
+
+        return $rows;
     }
 }

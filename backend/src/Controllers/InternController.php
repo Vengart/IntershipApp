@@ -3,7 +3,6 @@
 namespace App\Controllers;
 
 use App\Http\Response;
-use App\Models\AuditLogRepository;
 use App\Models\InternRepository;
 use App\Services\InternService;
 
@@ -11,7 +10,6 @@ class InternController
 {
     public function __construct(
         private InternRepository $interns,
-        private AuditLogRepository $auditLogs,
         private InternService $service
     ) {
     }
@@ -32,6 +30,7 @@ class InternController
         ]);
 
         // Отдельно от array_filter выше: '0'/'false' — валидные значения
+        // is_active, их нельзя терять как "пустые".
         if (isset($_GET['is_active'])) {
             $filters['is_active'] = $_GET['is_active'];
         }
@@ -78,13 +77,5 @@ class InternController
         }
 
         Response::json($updated);
-    }
-
-    /**
-     * GET /interns/{id}/history — operator и auditor.
-     */
-    public function history(int $id): never
-    {
-        Response::json($this->auditLogs->findByIntern($id));
     }
 }

@@ -95,6 +95,14 @@ class InternRepository
         $fields = array_intersect_key($data, array_flip(self::WRITABLE_FIELDS));
         $fields['updated_by_user_id'] = $userId;
 
+        // PDO по умолчанию биндит bool как строку, а (string) false === "" —
+        // Postgres такое не примет для колонки типа boolean. Приводим к 0/1.
+        foreach ($fields as $key => $value) {
+            if (is_bool($value)) {
+                $fields[$key] = (int) $value;
+            }
+        }
+
         $columns = array_keys($fields);
         $placeholders = array_map(fn($c) => ":{$c}", $columns);
 
@@ -119,6 +127,12 @@ class InternRepository
         $fields = array_intersect_key($data, array_flip(self::WRITABLE_FIELDS));
         $fields['updated_by_user_id'] = $userId;
         $fields['updated_at'] = date('c');
+
+        foreach ($fields as $key => $value) {
+            if (is_bool($value)) {
+                $fields[$key] = (int) $value;
+            }
+        }
 
         $setParts = array_map(fn($c) => "{$c} = :{$c}", array_keys($fields));
 

@@ -53,13 +53,14 @@ try {
     $db = Database::getConnection();
 
     // Фабрика контроллера — чтобы не собирать зависимости в каждой ветке руками
-    $makeInternController = function () use ($db): InternController {
+     $makeInternController = function () use ($db): InternController {
         return new InternController(
             new InternRepository($db),
-            new InternService($db, new InternRepository($db))
+            new InternService($db, new InternRepository($db), new AuditLogRepository($db))
         );
     };
 
+    error_log("DEBUG path=[{$path}] method=[{$method}]");
     match (true) {
         $method === 'POST' && $path === '/auth/login' => (function () use ($db) {
             $controller = new AuthController(new UserRepository($db), new JwtHandler());
