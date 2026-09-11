@@ -132,12 +132,12 @@ async function handleSubmit() {
       <div class="grid grid-cols-2 gap-4">
         <div class="col-span-2">
           <label class="block text-sm text-ink-muted mb-1">Nume complet *</label>
-          <input v-model="form.full_name" required type="text" class="field" />
+          <input v-model="form.full_name" required maxlength="150" type="text" class="field" />
         </div>
 
         <div>
           <label class="block text-sm text-ink-muted mb-1">Email</label>
-          <input v-model="form.email" type="email" class="field" />
+          <input v-model="form.email" maxlength="100" type="email" class="field" />
         </div>
         <div>
           <label class="block text-sm text-ink-muted mb-1">Telefon</label>
@@ -157,20 +157,20 @@ async function handleSubmit() {
 
         <div>
           <label class="block text-sm text-ink-muted mb-1">Universitate</label>
-          <input v-model="form.university" type="text" class="field" />
+          <input v-model="form.university" maxlength="150" type="text" class="field" />
         </div>
         <div>
           <label class="block text-sm text-ink-muted mb-1">Facultate</label>
-          <input v-model="form.faculty" type="text" class="field" />
+          <input v-model="form.faculty" maxlength="150" type="text" class="field" />
         </div>
 
         <div>
           <label class="block text-sm text-ink-muted mb-1">Specialitate</label>
-          <input v-model="form.specialty" type="text" class="field" />
+          <input v-model="form.specialty" maxlength="150" type="text" class="field" />
         </div>
         <div>
           <label class="block text-sm text-ink-muted mb-1">An studiu</label>
-          <input v-model="form.study_year" type="text" class="field" />
+          <input v-model="form.study_year" maxlength="50" type="text" class="field" />
         </div>
 
         <div>
@@ -199,20 +199,20 @@ async function handleSubmit() {
 
         <div>
           <label class="block text-sm text-ink-muted mb-1">Mentor</label>
-          <input v-model="form.mentor" type="text" class="field" />
+          <input v-model="form.mentor" maxlength="150" type="text" class="field" />
         </div>
         <div>
           <label class="block text-sm text-ink-muted mb-1">Status stagiu</label>
-          <input v-model="form.internship_status" type="text" class="field" />
+          <input v-model="form.internship_status" maxlength="50" type="text" class="field" />
         </div>
 
         <div>
           <label class="block text-sm text-ink-muted mb-1">Tip stagiu</label>
-          <input v-model="form.internship_type" type="text" class="field" />
+          <input v-model="form.internship_type" maxlength="50" type="text" class="field" />
         </div>
         <div>
           <label class="block text-sm text-ink-muted mb-1">Potențial angajare</label>
-          <input v-model="form.hiring_potential" type="text" class="field" />
+          <input v-model="form.hiring_potential" maxlength="50" type="text" class="field" />
         </div>
 
         <div class="col-span-2">
@@ -220,6 +220,7 @@ async function handleSubmit() {
           <textarea
             v-model="form.recommendation_source"
             @input="autoResize"
+            maxlength="150"
             rows="1"
             class="field resize-none overflow-hidden"
           ></textarea>

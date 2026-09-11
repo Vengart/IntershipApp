@@ -147,11 +147,19 @@ onMounted(loadData)
             :class="{ 'opacity-50': !intern.is_active }"
           >
             <td class="px-3 py-2 font-mono text-ink-muted">{{ intern.id }}</td>
-            <td class="px-3 py-2 text-ink">{{ intern.full_name }}</td>
-            <td class="px-3 py-2 text-ink-muted">{{ intern.university }}</td>
-            <td class="px-3 py-2 text-ink-muted">{{ intern.specialty }}</td>
+            <td class="px-3 py-2 text-ink">
+              <div class="max-w-[180px] truncate" :title="intern.full_name">{{ intern.full_name }}</div>
+            </td>
+            <td class="px-3 py-2 text-ink-muted">
+              <div class="max-w-[160px] truncate" :title="intern.university">{{ intern.university }}</div>
+            </td>
+            <td class="px-3 py-2 text-ink-muted">
+              <div class="max-w-[160px] truncate" :title="intern.specialty">{{ intern.specialty }}</div>
+            </td>
             <td class="px-3 py-2 text-ink-muted">{{ intern.internship_status }}</td>
-            <td class="px-3 py-2 text-ink-muted">{{ intern.mentor }}</td>
+            <td class="px-3 py-2 text-ink-muted">
+              <div class="max-w-[140px] truncate" :title="intern.mentor">{{ intern.mentor }}</div>
+            </td>
             <td class="px-3 py-2 text-right">
               <RouterLink
                 v-if="auth.isOperator"

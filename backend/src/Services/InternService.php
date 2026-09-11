@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\NotFoundException;
 use App\Models\AuditLogRepository;
 use App\Models\InternRepository;
 use PDO;
@@ -53,7 +54,7 @@ class InternService
         $before = $this->interns->find($id);
 
         if ($before === null) {
-            throw new \RuntimeException('Intern not found');
+            throw new NotFoundException('Intern not found');
         }
 
         $this->db->beginTransaction();

@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Exceptions\NotFoundException;
 use App\Http\Response;
 use App\Models\InternRepository;
 use App\Services\InternService;
@@ -53,7 +54,11 @@ class InternController
             Response::error('direction_id and section_id are required', 422, 'validation_error');
         }
 
-        $created = $this->service->createIntern($data, $userId);
+        try {
+            $created = $this->service->createIntern($data, $userId);
+        } catch (\PDOException $e) {
+            $this->handleDatabaseError($e);
+        }
 
         Response::json($created, 201);
     }
@@ -72,10 +77,32 @@ class InternController
 
         try {
             $updated = $this->service->updateIntern($id, $data, $userId);
-        } catch (\RuntimeException $e) {
+        } catch (NotFoundException $e) {
             Response::error($e->getMessage(), 404, 'not_found');
+        } catch (\PDOException $e) {
+            $this->handleDatabaseError($e);
         }
 
         Response::json($updated);
+    }
+
+    /**
+     * Общая точка для ошибок БД в create()/update(). SQLSTATE 22001 —
+     * "string data right truncation", т.е. значение длиннее, чем позволяет
+     * VARCHAR(N) в схеме. Для этого случая — понятное сообщение вместо
+     * сырого текста Postgres. Всё остальное пробрасываем дальше — долетит
+     * до общего catch(\Throwable) в index.php как обычная 500.
+     */
+    private function handleDatabaseError(\PDOException $e): never
+    {
+        if ($e->getCode() === '22001') {
+            Response::error(
+                'Unul dintre câmpuri depășește lungimea maximă permisă',
+                422,
+                'validation_error'
+            );
+        }
+
+        throw $e;
     }
 }
